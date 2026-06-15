@@ -165,14 +165,15 @@ Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
 -- ===== FUNCTIONS =====
 
 local function getGameName()
-    local success, info = pcall(function()
-        return MarketplaceService:GetProductInfo(game.PlaceId)
+    -- Use the Roblox web API via HttpService (more reliable than MarketplaceService)
+    local success, result = pcall(function()
+        local url = "https://games.roblox.com/v1/games?universeIds=" .. tostring(game.GameId)
+        return game:HttpGet(url)
     end)
-    if success and info then
-        -- GetProductInfo returns a table keyed by PlaceId when given a single ID
-        local data = info[game.PlaceId]
-        if data and data.Name then
-            return data.Name
+    if success and result then
+        local data = game:GetService("HttpService"):JSONDecode(result)
+        if data and data.data and data.data[1] and data.data[1].name then
+            return data.data[1].name
         end
     end
     return "Unknown Game"
