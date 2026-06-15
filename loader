@@ -1,0 +1,257 @@
+-- ========== GAME LOADER SCRIPT ==========
+-- This script runs after key verification.
+-- It checks the current game and executes the corresponding script.
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local SUPPORTED_GAMES = {
+    [131756752872026] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/dd.lua",  -- Dive Down
+    [71812071769179] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/guard.lua",  -- Escape Guards
+    [120564326011184] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/yutuber.lua",  -- Be a YouTuber
+    [107892466314467] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/growacryp.lua",  -- Grow a Crypto
+    [119987266683883] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/survivelava.lua",  -- Survive Lava
+    [106772177198260] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/Reelbrain",  -- Reel A Brainrot
+    [71600459831333] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/aimdubu.lua",  -- StreetLife
+    [97365843755210] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/grass",  -- CutGrass
+    [92173115378522] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/Split",  -- Split the Sea
+    [84644870163414] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/getstrong",  -- Get Strong for brainrot
+    [88518003689791] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/BBQit",  -- BBQit
+    [101736964164901] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/computer.lua",  -- My Gaming Cafe
+    [88207898227053] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/buildabridge.luau",  -- Build Bridge to Brainrots
+    [97598239454123] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/Gag2",  -- Grow a Garden 2
+}
+
+-- ========== LOADING UI ==========
+local PINK = Color3.fromHex("#ff79b0")
+local DARK = Color3.fromHex("#0a0a0a")
+local WHITE = Color3.fromHex("#ffffff")
+
+-- Blur the game
+local blur = Instance.new("BlurEffect")
+blur.Size = 24
+blur.Parent = game:GetService("Lighting")
+
+-- ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "DubuHubLoader"
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() gui.Parent = game:GetService("CoreGui") end)
+if not gui.Parent then pcall(function() gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end) end
+
+-- Dark overlay
+local overlay = Instance.new("Frame")
+overlay.Size = UDim2.fromScale(1, 1)
+overlay.BackgroundColor3 = DARK
+overlay.BackgroundTransparency = 0.5
+overlay.BorderSizePixel = 0
+overlay.ZIndex = 1
+overlay.Parent = gui
+
+-- Container
+local container = Instance.new("Frame")
+container.Size = UDim2.fromOffset(300, 200)
+container.Position = UDim2.fromScale(0.5, 0.5)
+container.AnchorPoint = Vector2.new(0.5, 0.5)
+container.BackgroundColor3 = Color3.fromHex("#111111")
+container.BackgroundTransparency = 0.1
+container.BorderSizePixel = 0
+container.ZIndex = 2
+container.Parent = gui
+Instance.new("UICorner", container).CornerRadius = UDim.new(0, 12)
+
+-- Pink border
+local border = Instance.new("UIStroke")
+border.Color = PINK
+border.Thickness = 1.5
+border.Transparency = 0.3
+border.Parent = container
+
+-- Icon image (start oversized for zoom-in)
+local iconCircle = Instance.new("Frame")
+iconCircle.Size = UDim2.fromOffset(160, 160)  -- Start big
+iconCircle.Position = UDim2.fromScale(0.5, 0.28)
+iconCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+iconCircle.BackgroundColor3 = PINK
+iconCircle.BorderSizePixel = 0
+iconCircle.ZIndex = 3
+iconCircle.Parent = container
+Instance.new("UICorner", iconCircle).CornerRadius = UDim.new(1, 0)
+
+local iconImage = Instance.new("ImageLabel")
+iconImage.Size = UDim2.fromScale(0.9, 0.9)
+iconImage.Position = UDim2.fromScale(0.5, 0.5)
+iconImage.AnchorPoint = Vector2.new(0.5, 0.5)
+iconImage.BackgroundTransparency = 1
+iconImage.Image = "rbxassetid://80023604527624"
+iconImage.ScaleType = Enum.ScaleType.Fit
+iconImage.ZIndex = 4
+iconImage.Parent = iconCircle
+
+local iconText = Instance.new("TextLabel")
+iconText.Size = UDim2.fromScale(1, 1)
+iconText.BackgroundTransparency = 1
+iconText.Text = "DH"
+iconText.TextColor3 = WHITE
+iconText.Font = Enum.Font.GothamBlack
+iconText.TextSize = 24
+iconText.ZIndex = 3
+iconText.Parent = iconCircle
+
+-- Title (hidden initially)
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromOffset(260, 28)
+title.Position = UDim2.fromScale(0.5, 0.55)
+title.AnchorPoint = Vector2.new(0.5, 0.5)
+title.BackgroundTransparency = 1
+title.Text = "DUBU HUB"
+title.TextColor3 = WHITE
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 24
+title.TextTransparency = 1
+title.ZIndex = 3
+title.Parent = container
+
+-- Game name (hidden initially)
+local gameLabel = Instance.new("TextLabel")
+gameLabel.Size = UDim2.fromOffset(260, 20)
+gameLabel.Position = UDim2.fromScale(0.5, 0.68)
+gameLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+gameLabel.BackgroundTransparency = 1
+gameLabel.Text = ""
+gameLabel.TextColor3 = PINK
+gameLabel.Font = Enum.Font.GothamBold
+gameLabel.TextSize = 13
+gameLabel.TextTransparency = 1
+gameLabel.ZIndex = 3
+gameLabel.Parent = container
+
+-- Status text (hidden initially)
+local status = Instance.new("TextLabel")
+status.Size = UDim2.fromOffset(260, 18)
+status.Position = UDim2.fromScale(0.5, 0.80)
+status.AnchorPoint = Vector2.new(0.5, 0.5)
+status.BackgroundTransparency = 1
+status.Text = ""
+status.TextColor3 = Color3.fromHex("#999999")
+status.Font = Enum.Font.Gotham
+status.TextSize = 11
+status.TextTransparency = 1
+status.ZIndex = 3
+status.Parent = container
+
+-- Simple loading bar
+local barTrack = Instance.new("Frame")
+barTrack.Size = UDim2.fromOffset(200, 3)
+barTrack.Position = UDim2.fromScale(0.5, 0.90)
+barTrack.AnchorPoint = Vector2.new(0.5, 0.5)
+barTrack.BackgroundColor3 = Color3.fromHex("#1f1f1f")
+barTrack.BorderSizePixel = 0
+barTrack.ZIndex = 3
+barTrack.Parent = container
+Instance.new("UICorner", barTrack).CornerRadius = UDim.new(1, 0)
+
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.fromScale(0, 1)
+barFill.BackgroundColor3 = PINK
+barFill.BorderSizePixel = 0
+barFill.ZIndex = 4
+barFill.Parent = barTrack
+Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+
+-- ===== FUNCTIONS =====
+
+local function getGameName()
+    local success, info = pcall(function()
+        return MarketplaceService:GetProductInfo(game.PlaceId)
+    end)
+    if success and info then
+        -- GetProductInfo returns a table keyed by PlaceId when given a single ID
+        local data = info[game.PlaceId]
+        if data and data.Name then
+            return data.Name
+        end
+    end
+    return "Unknown Game"
+end
+
+local function playSound(id)
+    pcall(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://" .. tostring(id)
+        sound.Volume = 1
+        sound.Parent = gui
+        sound:Play()
+        task.delay(3, function() sound:Destroy() end)
+    end)
+end
+
+local function popOut()
+    -- Pop out: scale up + fade together
+    TweenService:Create(blur, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = 0 }):Play()
+    TweenService:Create(overlay, TweenInfo.new(0.35), { BackgroundTransparency = 1 }):Play()
+    TweenService:Create(container, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Size = UDim2.fromOffset(380, 260), BackgroundTransparency = 1 }):Play()
+    TweenService:Create(iconCircle, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Size = UDim2.fromOffset(90, 90), BackgroundTransparency = 1 }):Play()
+    for _, el in container:GetChildren() do
+        if el:IsA("TextLabel") then
+            TweenService:Create(el, TweenInfo.new(0.3), { TextTransparency = 1 }):Play()
+        elseif el:IsA("Frame") and el ~= container and el ~= iconCircle then
+            TweenService:Create(el, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+        end
+    end
+    if border then TweenService:Create(border, TweenInfo.new(0.3), { Transparency = 1 }):Play() end
+    task.wait(0.5)
+    gui:Destroy()
+end
+
+-- ========== MAIN ==========
+
+-- Entrance: icon zooms in from big → normal
+TweenService:Create(iconCircle, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(60, 60) }):Play()
+task.wait(0.55)
+
+-- Reveal text
+TweenService:Create(title, TweenInfo.new(0.4), { TextTransparency = 0 }):Play()
+task.wait(0.2)
+
+local gameName = getGameName()
+gameLabel.Text = gameName
+TweenService:Create(gameLabel, TweenInfo.new(0.4), { TextTransparency = 0 }):Play()
+task.wait(0.25)
+
+status.Text = "Detecting game..."
+TweenService:Create(status, TweenInfo.new(0.35), { TextTransparency = 0 }):Play()
+TweenService:Create(barFill, TweenInfo.new(0.4), { Size = UDim2.fromScale(0.25, 1) }):Play()
+task.wait(0.3)
+
+local scriptUrl = SUPPORTED_GAMES[game.PlaceId]
+
+if scriptUrl then
+    status.Text = "Downloading..."
+    TweenService:Create(barFill, TweenInfo.new(0.7), { Size = UDim2.fromScale(0.75, 1) }):Play()
+
+    local success, scriptContent = pcall(game.HttpGet, game, scriptUrl)
+
+    if success and scriptContent then
+        status.Text = "Ready!"
+        TweenService:Create(barFill, TweenInfo.new(0.35), { Size = UDim2.fromScale(1, 1) }):Play()
+        playSound(9120386435)
+        task.wait(0.5)
+        popOut()
+        loadstring(scriptContent)()
+    else
+        status.Text = "Failed to load"
+        TweenService:Create(barFill, TweenInfo.new(0.3), { Size = UDim2.fromScale(1, 1) }):Play()
+        warn("Failed to load script:", scriptContent)
+        task.wait(3)
+    end
+else
+    status.Text = "Unsupported game"
+    warn("Unsupported game: " .. gameName .. " (Place ID: " .. game.PlaceId .. ")")
+    task.wait(3)
+end
+
+gui:Destroy()
