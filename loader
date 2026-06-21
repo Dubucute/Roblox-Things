@@ -21,7 +21,7 @@ local SUPPORTED_GAMES = {
     [101736964164901] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/computer.lua",  -- My Gaming Cafe
     [88207898227053] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/buildabridge.luau",  -- Build Bridge to Brainrots
     [97598239454123] = "https://raw.githubusercontent.com/Dubucute/Roblox-Things/refs/heads/main/Gag2",  -- Grow a Garden 2
-    [6170143659] = "https://dubuhub.vercel.app/demon",  -- demonology
+    [18199615050] = "https://dubuhub.vercel.app/demon",  -- demonology
 }
 
 -- ========== LOADING UI ==========
